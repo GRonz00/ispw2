@@ -1,4 +1,4 @@
-package it.uniroma2.gianlucaronzello.jira;
+package it.uniroma2.gianlucaronzello.jira.Model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

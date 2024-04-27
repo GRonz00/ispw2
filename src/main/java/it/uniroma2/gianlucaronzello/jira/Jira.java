@@ -1,6 +1,8 @@
 package it.uniroma2.gianlucaronzello.jira;
 
 import it.uniroma2.gianlucaronzello.Pair;
+import it.uniroma2.gianlucaronzello.jira.Model.JiraIssue;
+import it.uniroma2.gianlucaronzello.jira.Model.JiraVersion;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
