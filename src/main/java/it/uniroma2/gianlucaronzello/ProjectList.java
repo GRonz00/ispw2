@@ -16,4 +16,7 @@ public class ProjectList {
     public static String[] coldStartsProjects() {
         return new String[]{"openjpa", "storm", "zookeeper", "syncope", "tajo"};
     }
+    public static String[] branchProjects() {
+        return  new String[]{"master","main"};
+    }
 }
