@@ -79,7 +79,7 @@ public class ApplyMetrics {
                 }
             }
         } catch (GitException e) {
-            logger.info("error");
+            logger.info("git error");
         }
     }
 
@@ -115,7 +115,7 @@ public class ApplyMetrics {
                 previous = current;
             }
         } catch (GitException e) {
-            logger.info("error");
+            logger.info("git exception");
         }
     }
 
@@ -155,7 +155,7 @@ public class ApplyMetrics {
                 previous = current;
             }
         } catch (GitException e) {
-            logger.info("error");
+            logger.info("apply cumulative metric error");
         }
     }
 
@@ -193,7 +193,7 @@ public class ApplyMetrics {
                 previous = current.second();
             }
         } catch (GitException e) {
-            logger.info("error");
+            logger.info("apply list metric error");
         }
     }
     public void setBuggy(int lastVersion) throws GitException {
