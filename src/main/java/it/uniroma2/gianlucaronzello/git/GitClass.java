@@ -41,7 +41,7 @@ public class GitClass {
     private final List<GitCommitEntry> commits;
 
     
-    // Remote Repository
+    //Remote Repository
     public GitClass(String project, String url, String branch) throws GitException {
 
         this.folder = new File(project);
