@@ -159,27 +159,36 @@ public class Jira {
                 if (injected != null && opening != null && fix != null) break;
             }
 
-            // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
-            // Affected versions in Jira is incorrect, so the injected version is invalid
-            if (!issue.getAffectedVersionsDates().isEmpty() && issue.getAffectedVersionsDates().get(0).isAfter(fix.first().releaseDate())) {
-                issue.getAffectedVersionsDates().clear();
-                injected = null;
-            }
+                // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
+                // Affected versions in Jira is incorrect, so the injected version is invalid
+                if (!issue.getAffectedVersionsDates().isEmpty()) {
+                    assert fix != null;
+                    if (issue.getAffectedVersionsDates().get(0).isAfter(fix.first().releaseDate())) {
+                        issue.getAffectedVersionsDates().clear();
+                        injected = null;
+                    }
+                }
 
-            // No injected version was found but the opening version is the first release
-            // So the injected must be the first release as well
-            if (injected == null && opening.first() == versions.get(0)) injected = opening;
+                // No injected version was found but the opening version is the first release
+                // So the injected must be the first release as well
+                if (injected == null) {
+                    assert opening != null;
+                    if (opening.first() == versions.get(0)) injected = opening;
+                }
 
-            // Injected version is present (from affectedVersion, or derived as the first release)
-            if (injected != null) {
-                issue.setIvIndex(injected.second());
-                injected.first().injected().add(issue);
-            }
-            issue.setOvIndex(opening.second());
+                // Injected version is present (from affectedVersion, or derived as the first release)
+                if (injected != null) {
+                    issue.setIvIndex(injected.second());
+                    injected.first().injected().add(issue);
+                }
+                assert opening != null;
+                issue.setOvIndex(opening.second());
+            assert fix != null;
             issue.setFvIndex(fix.second());
 
-            opening.first().opened().add(issue);
-            fix.first().fixed().add(issue);
+                opening.first().opened().add(issue);
+                fix.first().fixed().add(issue);
+
 
         }
     }
@@ -230,6 +239,9 @@ public class Jira {
             }
             totalIssues += version.opened().size();
         }
+    }
+    public List<JiraVersion> getVersions() {
+        return versions;
     }
 
 }
