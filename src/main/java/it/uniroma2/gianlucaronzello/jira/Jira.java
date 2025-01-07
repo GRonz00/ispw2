@@ -131,10 +131,10 @@ public class Jira {
 
             // Find IV, OV and FV from Jira API (based on `created`, `resolution` and the first affectedVersion
 
-            Pair<JiraVersion, Integer> injected = null;
-            Pair<JiraVersion, Integer> opening = null;
-            Pair<JiraVersion, Integer> fix = null;
-            classify(injected,opening,fix,issue);
+            List<Pair<JiraVersion, Integer>> foundVersions = getVersions(issue, versions);
+            Pair<JiraVersion, Integer> injected = foundVersions.get(0);
+            Pair<JiraVersion, Integer> opening = foundVersions.get(1);
+            Pair<JiraVersion, Integer> fix = foundVersions.get(2);
 
 
                 // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
@@ -164,7 +164,11 @@ public class Jira {
 
         }
     }
-    private void classify(Pair<JiraVersion, Integer> injected, Pair<JiraVersion, Integer> opening, Pair<JiraVersion, Integer> fix, JiraIssue issue){
+    private List<Pair<JiraVersion, Integer>> getVersions(JiraIssue issue, List<JiraVersion> versions) {
+        Pair<JiraVersion, Integer> injected = null;
+        Pair<JiraVersion, Integer> opening = null;
+        Pair<JiraVersion, Integer> fix = null;
+
         for (int i = 0; i < versions.size(); i++) {
             JiraVersion version = versions.get(i);
             // Injected version is the first affected version, if present
@@ -178,6 +182,8 @@ public class Jira {
             // All variables are set, it is not necessary to search the whole list
             if (injected != null && opening != null && fix != null) break;
         }
+
+        return Arrays.asList(injected, opening, fix);
     }
 
 
