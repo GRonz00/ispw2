@@ -134,20 +134,8 @@ public class Jira {
             Pair<JiraVersion, Integer> injected = null;
             Pair<JiraVersion, Integer> opening = null;
             Pair<JiraVersion, Integer> fix = null;
+            classify(injected,opening,fix,issue);
 
-            for (int i = 0; i < versions.size(); i++) {
-                JiraVersion version = versions.get(i);
-                // Injected version is the first affected version, if present
-                if (injected == null && !issue.getAffectedVersionsDates().isEmpty() && issue.getAffectedVersionsDates().get(0).isEqual(version.releaseDate()))
-                    injected = new Pair<>(version, i);
-                // Opening version is set as the first release after the jira ticket was created
-                if (opening == null && version.releaseDate().isAfter(issue.getCreated())) opening = new Pair<>(version, i);
-                // Fix version is set as the first release after the jira ticket was set as resolved
-                if (fix == null && !version.releaseDate().isBefore(issue.getResolution()))
-                    fix = new Pair<>(version, i);
-                // All variables are set, it is not necessary to search the whole list
-                if (injected != null && opening != null && fix != null) break;
-            }
 
                 // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
                 // Affected versions in Jira is incorrect, so the injected version is invalid
@@ -176,6 +164,22 @@ public class Jira {
 
         }
     }
+    private void classify(Pair<JiraVersion, Integer> injected, Pair<JiraVersion, Integer> opening, Pair<JiraVersion, Integer> fix, JiraIssue issue){
+        for (int i = 0; i < versions.size(); i++) {
+            JiraVersion version = versions.get(i);
+            // Injected version is the first affected version, if present
+            if (injected == null && !issue.getAffectedVersionsDates().isEmpty() && issue.getAffectedVersionsDates().get(0).isEqual(version.releaseDate()))
+                injected = new Pair<>(version, i);
+            // Opening version is set as the first release after the jira ticket was created
+            if (opening == null && version.releaseDate().isAfter(issue.getCreated())) opening = new Pair<>(version, i);
+            // Fix version is set as the first release after the jira ticket was set as resolved
+            if (fix == null && !version.releaseDate().isBefore(issue.getResolution()))
+                fix = new Pair<>(version, i);
+            // All variables are set, it is not necessary to search the whole list
+            if (injected != null && opening != null && fix != null) break;
+        }
+    }
+
 
     public double calculateProportionColdStart() {
         // Get issues with valid IV (OV and FV should always be present)
