@@ -14,10 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ApplyMetrics {
+    private static final Logger logger = Logger.getLogger("ApplyMetrics");
     // Sorted list of Jira releases
     private final List<Pair<JiraVersion, GitCommitEntry>> versions;
     private final Map<JiraIssue, GitCommitEntry> issues;
@@ -77,7 +79,7 @@ public class ApplyMetrics {
                 }
             }
         } catch (GitException e) {
-            System.out.println("error");
+            logger.info("error");
         }
     }
 
@@ -113,7 +115,7 @@ public class ApplyMetrics {
                 previous = current;
             }
         } catch (GitException e) {
-            System.out.println("error");
+            logger.info("error");
         }
     }
 
@@ -153,7 +155,7 @@ public class ApplyMetrics {
                 previous = current;
             }
         } catch (GitException e) {
-            System.out.println("error");
+            logger.info("error");
         }
     }
 
@@ -191,7 +193,7 @@ public class ApplyMetrics {
                 previous = current.second();
             }
         } catch (GitException e) {
-            System.out.println("error");
+            logger.info("error");
         }
     }
     public void setBuggy(int lastVersion) throws GitException {

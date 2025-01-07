@@ -15,9 +15,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class DatasetGenerator {
 
+    private static final Logger logger = Logger.getLogger("DatasetGenerator");
     public static void main(String[] args) {
         try {
             for (int i = 0; i < ProjectList.names().length; i++) {
@@ -48,12 +50,12 @@ public class DatasetGenerator {
                 else
                     git = new GitClass(project, "https://github.com/apache/%s".formatted(project), ProjectList.branchProjects()[i]);
 
-                //Jira jiraProject = new Jira(project, ProjectList.additionalParams()[i]);
+                
                 JiraGitIntegration integration = new JiraGitIntegration(git.getCommits());
                 integration.findRevisions(jira.getVersions());
                 for (Pair<JiraVersion, GitCommitEntry> version : integration.versions()){
                     git.loadClassesOfRevision(version.second());}
-                System.out.print("Creando il dataset");
+                
 
                 ApplyMetrics dataset = new ApplyMetrics(integration,git);
                 dataset.applyMetrics();
@@ -66,12 +68,12 @@ public class DatasetGenerator {
             }
         }
         catch (JiraException e) {
-            System.out.println("Jira error"+e);
+            logger.info("Jira error"+e);
 
         } catch (GitException e) {
-            System.out.println("Git error"+e);
+            logger.info("Git error"+e);
         } catch (Exception e) {
-            System.out.println("Integration error"+e);
+            logger.info("Integration error"+e);
         }
     }
 
