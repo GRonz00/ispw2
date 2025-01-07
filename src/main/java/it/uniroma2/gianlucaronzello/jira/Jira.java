@@ -151,18 +151,15 @@ public class Jira {
 
                 // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
                 // Affected versions in Jira is incorrect, so the injected version is invalid
-                if (!issue.getAffectedVersionsDates().isEmpty()) {
-
-                    if (issue.getAffectedVersionsDates().get(0).isAfter(fix.first().releaseDate())) {
+                if (!issue.getAffectedVersionsDates().isEmpty() && issue.getAffectedVersionsDates().get(0).isAfter(fix.first().releaseDate()) ) {
                         issue.getAffectedVersionsDates().clear();
                         injected = null;
-                    }
+
                 }
 
                 // No injected version was found but the opening version is the first release
                 // So the injected must be the first release as well
-                if (injected == null) {
-                    if (opening.first() == versions.get(0)) injected = opening;
+                if (injected == null && opening.first() == versions.get(0)) {injected = opening;
                 }
 
                 // Injected version is present (from affectedVersion, or derived as the first release)
