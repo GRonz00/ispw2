@@ -4,8 +4,8 @@ import it.uniroma2.gianlucaronzello.git.GitClass;
 import it.uniroma2.gianlucaronzello.git.GitCommitEntry;
 import it.uniroma2.gianlucaronzello.git.GitException;
 import it.uniroma2.gianlucaronzello.git.JiraGitIntegration;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraIssue;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraVersion;
+import it.uniroma2.gianlucaronzello.jira.model.JiraIssue;
+import it.uniroma2.gianlucaronzello.jira.model.JiraVersion;
 import it.uniroma2.gianlucaronzello.utils.DatasetPaths;
 import it.uniroma2.gianlucaronzello.utils.Metric;
 

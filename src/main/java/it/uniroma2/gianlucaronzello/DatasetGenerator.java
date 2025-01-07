@@ -6,7 +6,7 @@ import it.uniroma2.gianlucaronzello.git.GitException;
 import it.uniroma2.gianlucaronzello.git.JiraGitIntegration;
 import it.uniroma2.gianlucaronzello.jira.Jira;
 import it.uniroma2.gianlucaronzello.jira.JiraException;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraVersion;
+import it.uniroma2.gianlucaronzello.jira.model.JiraVersion;
 import it.uniroma2.gianlucaronzello.utils.Metric;
 
 import java.nio.file.Path;

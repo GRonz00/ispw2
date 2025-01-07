@@ -1,8 +1,8 @@
 package it.uniroma2.gianlucaronzello.jira;
 
 import it.uniroma2.gianlucaronzello.Pair;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraIssue;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraVersion;
+import it.uniroma2.gianlucaronzello.jira.model.JiraIssue;
+import it.uniroma2.gianlucaronzello.jira.model.JiraVersion;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -30,7 +30,7 @@ public class Jira {
 
     }
     public List<JiraVersion> loadVersions(String project) throws JiraException {
-        List<JiraVersion> versions = new ArrayList<>();
+        List<JiraVersion> versionList = new ArrayList<>();
         String url = "https://issues.apache.org/jira/rest/api/2/project/%s/versions".formatted(project.toUpperCase());
         String json = getJsonFromUrl(url);
         JSONArray jsonVersions = new JSONArray(json);
@@ -43,14 +43,14 @@ public class Jira {
             String releaseDateString = jsonVersion.getString(JiraVersion.RELEASE_DATE_FIELD);
             LocalDate date = LocalDate.parse(releaseDateString);
             JiraVersion version = new JiraVersion(name, date);
-            versions.add(version);
+            versionList.add(version);
         }
 
-        versions.sort(Comparator.comparing(JiraVersion::releaseDate));
+        versionList.sort(Comparator.comparing(JiraVersion::releaseDate));
 
         // Loading only 50% of releases (for better dataset accuracy ~ snoring problem)
-        int numberOfVersions = (versions.size() + 1) / 2;
-        return versions.subList(0, numberOfVersions);
+        int numberOfVersions = (versionList.size() + 1) / 2;
+        return versionList.subList(0, numberOfVersions);
     }
 
     public String getJsonFromUrl(String url) throws JiraException {
@@ -64,7 +64,7 @@ public class Jira {
         }
     }
     public List<JiraIssue> loadIssues(String project, String params,  LocalDate firstVersion, LocalDate lastVersion) throws JiraException {
-        List<JiraIssue> issues = new ArrayList<>();
+        List<JiraIssue> issueList = new ArrayList<>();
         int total;
         int totalDecrement = 0; // total skipped issues (missing required fields)
         int startAt = 0;
@@ -100,16 +100,6 @@ public class Jira {
                 // Parse the dates
                 LocalDate resolution = LocalDate.parse(resolutionString.substring(0, 10));
                 LocalDate created = LocalDate.parse(createdString.substring(0, 10));
-                // Get the highest fix version on Jira
-                // Case: issue was reopened multiple times (so there are more than one fix version) ~ resolution date is only for the first one | BOOKKEEPER - 695
-                //List<LocalDate> fixVersions = getVersionsFromJsonArray(fields.getJSONArray(JiraIssue.FIX_VERSIONS_FIELD));
-                // Case: multiple fix versions (after resolution date) | BOOKKEEPER-695
-                //Optional<LocalDate> fix = fixVersions.stream().max(Comparator.naturalOrder());
-                // Replace the current resolution date to the fix version on Jira (sometimes the issue is reopened, but the resolution date is not updated)
-                // Case: fix version on Jira has a release date after the created field | i.e. BOOKKEEPER-774
-                //       (BOOKKEEPER-774 is not present in the issue list because it's after the last version considered)
-                //if (fix.isPresent() && fix.get().isAfter(created) && !fix.get().isAfter(lastVersion))
-                 //   resolution = fix.get();
 
                 // Get affected versions from Jira and sort them
                 List<LocalDate> affectedVersions = new ArrayList<>();
@@ -123,12 +113,12 @@ public class Jira {
                 affectedVersions.sort(Comparator.naturalOrder());
 
                 JiraIssue issue = new JiraIssue(key, resolution, created, affectedVersions);
-                issues.add(issue);
+                issueList.add(issue);
             }
             startAt += result.getInt("maxResults");
-        } while (total - totalDecrement != issues.size());
-        Collections.reverse(issues); // sorted by key
-        return issues;
+        } while (total - totalDecrement != issueList.size());
+        Collections.reverse(issueList); // sorted by key
+        return issueList;
     }
     public void classifyIssues(List<JiraVersion> versions, List<JiraIssue> issues) {
         for (JiraIssue issue : issues) {
@@ -162,7 +152,7 @@ public class Jira {
                 // Case: affected version in Jira is after the fix version (based on resolutiondate) | i.e. BOOKKEEPER-374
                 // Affected versions in Jira is incorrect, so the injected version is invalid
                 if (!issue.getAffectedVersionsDates().isEmpty()) {
-                    assert fix != null;
+
                     if (issue.getAffectedVersionsDates().get(0).isAfter(fix.first().releaseDate())) {
                         issue.getAffectedVersionsDates().clear();
                         injected = null;
@@ -172,7 +162,6 @@ public class Jira {
                 // No injected version was found but the opening version is the first release
                 // So the injected must be the first release as well
                 if (injected == null) {
-                    assert opening != null;
                     if (opening.first() == versions.get(0)) injected = opening;
                 }
 
@@ -181,10 +170,8 @@ public class Jira {
                     issue.setIvIndex(injected.second());
                     injected.first().injected().add(issue);
                 }
-                assert opening != null;
                 issue.setOvIndex(opening.second());
-            assert fix != null;
-            issue.setFvIndex(fix.second());
+                issue.setFvIndex(fix.second());
 
                 opening.first().opened().add(issue);
                 fix.first().fixed().add(issue);

@@ -1,13 +1,14 @@
 package it.uniroma2.gianlucaronzello.git;
 
 import it.uniroma2.gianlucaronzello.Pair;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraIssue;
-import it.uniroma2.gianlucaronzello.jira.Model.JiraVersion;
+import it.uniroma2.gianlucaronzello.jira.model.JiraIssue;
+import it.uniroma2.gianlucaronzello.jira.model.JiraVersion;
 
 import java.io.Serial;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 class NotFoundException extends Exception {
     @Serial
@@ -18,6 +19,7 @@ class NotFoundException extends Exception {
     }
 }
 public class JiraGitIntegration {
+    private static final Logger logger = Logger.getLogger("Integration");
     private final List<GitCommitEntry> commits;
     private final List<Pair<JiraVersion, GitCommitEntry>> versions;
     private final Map<JiraIssue, GitCommitEntry> issues;
@@ -40,7 +42,7 @@ public class JiraGitIntegration {
                 }
             }
         }catch (NotFoundException e){
-            System.out.println("Not found");
+            logger.info("Not found");
         }
     }
 
