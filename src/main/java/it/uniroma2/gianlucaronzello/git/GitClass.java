@@ -31,9 +31,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class GitClass {
 
+    private static final Logger logger = Logger.getLogger("GitClass");
     private final File folder;
     private final Repository repository;
     private final List<GitCommitEntry> commits;
@@ -41,7 +43,6 @@ public class GitClass {
     
     // Remote Repository
     public GitClass(String project, String url, String branch) throws GitException {
-        System.out.println("provo a fare il remote repository del progetto "+project);
 
         this.folder = new File(project);
         try {
@@ -52,18 +53,20 @@ public class GitClass {
                     .setBranch(branch)
                     .call()
                     .close();
-            this.repository= loadLocal(folder);
+
         } catch (GitAPIException e) {
             throw new GitException("Could not clone repository", e);
         } catch (GitException e) {
-            throw new RuntimeException(e);
+            logger.info("git classs error");
         }
+        this.repository= loadLocal(folder);
         this.commits = getCommits(repository);
+
     }
 
     // Local Repository
     public GitClass(String folderPath) throws GitException {
-        System.out.println("provo il locale");
+        logger.info("provo il locale");
         this.folder = new File(folderPath);
         this.repository = loadLocal(folder);
         this.commits = getCommits(repository);
