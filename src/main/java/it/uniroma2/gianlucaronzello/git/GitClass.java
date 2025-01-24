@@ -66,7 +66,6 @@ public class GitClass {
 
     // Local Repository
     public GitClass(String folderPath) throws GitException {
-        logger.info("provo il locale");
         this.folder = new File(folderPath);
         this.repository = loadLocal(folder);
         this.commits = getCommits(repository);

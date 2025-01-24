@@ -13,12 +13,14 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class Jira {
     private final List<JiraVersion> versions;
     private final List<JiraIssue> issues;
+    private static final Logger logger = Logger.getLogger("Jira");
 
-    public Jira(String project, String params) throws JiraException {
+    public Jira(String project, String params)   {
         // Load versions from Jira API
         versions = loadVersions(project);
         JiraVersion first = versions.get(0);
@@ -29,7 +31,7 @@ public class Jira {
         classifyIssues(versions, issues);
 
     }
-    public List<JiraVersion> loadVersions(String project) throws JiraException {
+    public List<JiraVersion> loadVersions(String project)   {
         List<JiraVersion> versionList = new ArrayList<>();
         String url = "https://issues.apache.org/jira/rest/api/2/project/%s/versions".formatted(project.toUpperCase());
         String json = getJsonFromUrl(url);
@@ -53,17 +55,19 @@ public class Jira {
         return versionList.subList(0, numberOfVersions);
     }
 
-    public String getJsonFromUrl(String url) throws JiraException {
+    public String getJsonFromUrl(String url)   {
+        byte[] bytes = new byte[20];
         try (InputStream stream = URI.create(url).toURL().openStream()) {
-            byte[] bytes = stream.readAllBytes();
-            return new String(bytes, StandardCharsets.UTF_8);
+             bytes = stream.readAllBytes();
+
         } catch (MalformedURLException e) {
-            throw new JiraException("Incorrect url: %s".formatted(url), e);
+             logger.info("Incorrect url: %s".formatted(url)+ e);
         } catch (IOException e) {
-            throw new JiraException("Could not load page: %s".formatted(url), e);
+             logger.info("Could not load page: %s".formatted(url)+ e);
         }
+        return new String(bytes, StandardCharsets.UTF_8);
     }
-    public List<JiraIssue> loadIssues(String project, String params,  LocalDate firstVersion, LocalDate lastVersion) throws JiraException {
+    public List<JiraIssue> loadIssues(String project, String params,  LocalDate firstVersion, LocalDate lastVersion)   {
         List<JiraIssue> issueList = new ArrayList<>();
         int total;
         int totalDecrement = 0; // total skipped issues (missing required fields)

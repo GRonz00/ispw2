@@ -5,19 +5,20 @@ import it.uniroma2.gianlucaronzello.git.GitCommitEntry;
 import it.uniroma2.gianlucaronzello.git.GitException;
 import it.uniroma2.gianlucaronzello.git.JiraGitIntegration;
 import it.uniroma2.gianlucaronzello.jira.Jira;
-import it.uniroma2.gianlucaronzello.jira.JiraException;
 import it.uniroma2.gianlucaronzello.jira.model.JiraVersion;
+import it.uniroma2.gianlucaronzello.utils.DatasetPaths;
 import it.uniroma2.gianlucaronzello.utils.Metric;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.logging.Logger;
 
-public class DatasetGenerator {
+public class Main {
 
     private static final Logger logger = Logger.getLogger("DatasetGenerator");
     public static void main(String[] args) {
@@ -57,7 +58,7 @@ public class DatasetGenerator {
                     git.loadClassesOfRevision(version.second());}
                 
 
-                ApplyMetrics dataset = new ApplyMetrics(integration,git);
+                Dataset dataset = new Dataset(integration,git);
                 dataset.applyMetrics();
 
                 for (int j = 2; j <= jira.getVersions().size(); j++) {
@@ -67,15 +68,59 @@ public class DatasetGenerator {
                 dataset.writeOracle(project, jira.getVersions().size());
             }
         }
-        catch (JiraException e) {
-            logger.info("Jira error"+e);
-
-        } catch (GitException e) {
+        catch (GitException e) {
             logger.info("Git error"+e);
         } catch (Exception e) {
             logger.info("Integration error"+e);
         }
+        for (String project : ProjectList.names()) {
+            List<Main.Result> results = new ArrayList<>();
+            CSVManagement cm = new CSVManagement(project);
+            int nReleases = cm.getNumberReleases();
+            cm.generationArff();
+            for(int i = 2;i<nReleases;i++){
+                Analyses analysis = new Analyses(project, i);
+                results.addAll(analysis.performAnalysis());
+
+            }
+            NumberFormat numberFormat = DecimalFormat.getInstance(Locale.US);
+
+            List<String> resultsString = results.stream().map(r -> r.toCsvString(project, numberFormat)).toList();
+            String text = "Project,#TrainingRelease,Classifier,FeatureSelection,Sampling,Precision,Recall,Kappa,AUC%n%s"
+                    .formatted(String.join("\n", resultsString));
+            Path path = DatasetPaths.fromProject(project).resolve("result.csv");
+            try {
+                Files.write(path, text.getBytes());
+            } catch (IOException e) {
+                System.out.print("www");
+            }
+
+
+        }
+
+
     }
+
+    public record Result(int releases, AnalysisVariables.Classifiers classifier,
+                         AnalysisVariables.FeatureSelection featureSelection,
+                         AnalysisVariables.Sampling sampling,
+                         double precision, double recall, double auc, double kappa) {
+        public String toCsvString(String project, NumberFormat numberFormat) {
+            return "%s,%d,%s,%s,%s,%s,%s,%s,%s".formatted(
+                    project,
+                    releases,
+                    classifier,
+                    featureSelection,
+                    sampling,
+                    numberFormat.format(precision),
+                    numberFormat.format(recall),
+                    numberFormat.format(kappa),
+                    numberFormat.format(auc)
+            );
+        }
+
+    }
+
 
     public record MetricValue(String aClass, int version, Metric metric, Object value) {
     }

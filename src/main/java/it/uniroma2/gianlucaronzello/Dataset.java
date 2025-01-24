@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class ApplyMetrics {
+public class Dataset {
     private static final Logger logger = Logger.getLogger("ApplyMetrics");
     // Sorted list of Jira releases
     private final List<Pair<JiraVersion, GitCommitEntry>> versions;
@@ -29,7 +29,7 @@ public class ApplyMetrics {
 
     // Maps class name to its metrics. i-th element in the list is the entry for the i-th version
     private final Map<String, List<DatasetEntry>> entries;
-    public ApplyMetrics(JiraGitIntegration integration, GitClass git) {
+    public Dataset(JiraGitIntegration integration, GitClass git) {
         this.git = git;
         this.entries = new HashMap<>();
         this.issues = integration.issues();
@@ -49,7 +49,7 @@ public class ApplyMetrics {
         }
     }
 
-    private Void applyMetric(DatasetGenerator.MetricValue metric) {
+    private Void applyMetric(Main.MetricValue metric) {
         entries.get(metric.aClass())
                 .get(metric.version())
                 .metrics()
@@ -63,7 +63,7 @@ public class ApplyMetrics {
         applyListMetric(git, versions, issues, this::applyMetric);
     }
     public  void applyLOCMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
-                                      Function<DatasetGenerator.MetricValue, Void> func) {
+                                      Function<Main.MetricValue, Void> func) {
         try {
             // For every revision
             for (int i = 0; i < versions.size(); i++) {
@@ -74,7 +74,7 @@ public class ApplyMetrics {
                     // Calculate the LOC of a file calculating the number of lines
                     String contents = git.getContentsOfClass(revision, aClass);
                     int loc = contents.split("\n").length;
-                    DatasetGenerator.MetricValue value = new DatasetGenerator.MetricValue(aClass, i, Metric.LOC, loc);
+                    Main.MetricValue value = new Main.MetricValue(aClass, i, Metric.LOC, loc);
                     func.apply(value);
                 }
             }
@@ -84,7 +84,7 @@ public class ApplyMetrics {
     }
 
     public  void applyDifferenceMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
-                                             Function<DatasetGenerator.MetricValue, Void> func)  {
+                                             Function<Main.MetricValue, Void> func)  {
         try {
             // For every pair of consecutive releases
             GitCommitEntry previous = git.getFirstCommit();
@@ -105,8 +105,8 @@ public class ApplyMetrics {
                         locTouched = diff.touched();
                         churn = diff.churn();
                     }
-                    DatasetGenerator.MetricValue locTouchedMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.LOC_TOUCHED, locTouched);
-                    DatasetGenerator.MetricValue churnMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.CHURN, churn);
+                    Main.MetricValue locTouchedMetric = new Main.MetricValue(aClass, i, Metric.LOC_TOUCHED, locTouched);
+                    Main.MetricValue churnMetric = new Main.MetricValue(aClass, i, Metric.CHURN, churn);
                     func.apply(locTouchedMetric);
                     func.apply(churnMetric);
                 }
@@ -120,7 +120,7 @@ public class ApplyMetrics {
     }
 
     public  void applyCumulativeMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
-                                             Function<DatasetGenerator.MetricValue, Void> func)  {
+                                             Function<Main.MetricValue, Void> func)  {
         try {
             GitCommitEntry previous = git.getFirstCommit();
 
@@ -136,19 +136,19 @@ public class ApplyMetrics {
                     if (diffs.isEmpty()) size = 1;
                     // Calculating the max LOC added
                     int maxLocAdded = diffs.stream().map(GitClass.GitDiffEntry::added).max(Comparator.naturalOrder()).orElse(0);
-                    DatasetGenerator.MetricValue maxLocAddedMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.MAX_LOC_ADDED, maxLocAdded);
+                    Main.MetricValue maxLocAddedMetric = new Main.MetricValue(aClass, i, Metric.MAX_LOC_ADDED, maxLocAdded);
                     func.apply(maxLocAddedMetric);
                     // Calculating the max Churn
                     int maxChurn = diffs.stream().map(GitClass.GitDiffEntry::churn).max(Comparator.naturalOrder()).orElse(0);
-                    DatasetGenerator.MetricValue maxChurnMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.MAX_CHURN, maxChurn);
+                    Main.MetricValue maxChurnMetric = new Main.MetricValue(aClass, i, Metric.MAX_CHURN, maxChurn);
                     func.apply(maxChurnMetric);
                     // Calculating the sum of all the LOC added
                     int sumLocAdded = diffs.stream().map(GitClass.GitDiffEntry::added).reduce(Integer::sum).orElse(0);
-                    DatasetGenerator.MetricValue averageLocAddedMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.AVERAGE_LOC_ADDED, sumLocAdded / size);
+                    Main.MetricValue averageLocAddedMetric = new Main.MetricValue(aClass, i, Metric.AVERAGE_LOC_ADDED, sumLocAdded / size);
                     func.apply(averageLocAddedMetric);
                     // Calculating the sum of all Churn
                     int sumChurn = diffs.stream().map(GitClass.GitDiffEntry::churn).reduce(Integer::sum).orElse(0);
-                    DatasetGenerator.MetricValue averageChurnMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.AVERAGE_CHURN, sumChurn / size);
+                    Main.MetricValue averageChurnMetric = new Main.MetricValue(aClass, i, Metric.AVERAGE_CHURN, sumChurn / size);
                     func.apply(averageChurnMetric);
                 }
                 // Set previous version as the current for the next iteration
@@ -161,7 +161,7 @@ public class ApplyMetrics {
 
     public  void applyListMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
                                        Map<JiraIssue, GitCommitEntry> issues,
-                                       Function<DatasetGenerator.MetricValue, Void> func)  {
+                                       Function<Main.MetricValue, Void> func)  {
         try {
             GitCommitEntry previous = git.getFirstCommit();
             // For every consecutive pair of versions
@@ -172,12 +172,12 @@ public class ApplyMetrics {
                     // Get every commit between two releases
                     List<GitCommitEntry> commits = git.getAllCommitsOfClass(previous, current.second(), aClass);
                     // NR
-                    DatasetGenerator.MetricValue nrMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.NR, commits.size());
+                    Main.MetricValue nrMetric = new Main.MetricValue(aClass, i, Metric.NR, commits.size());
                     func.apply(nrMetric);
 
                     // NAuth
                     int numberOfAuthors = commits.stream().map(GitCommitEntry::author).collect(Collectors.toSet()).size();
-                    DatasetGenerator.MetricValue nAuthMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.N_AUTH, numberOfAuthors);
+                    Main.MetricValue nAuthMetric = new Main.MetricValue(aClass, i, Metric.N_AUTH, numberOfAuthors);
                     func.apply(nAuthMetric);
 
                     // NFix
@@ -186,7 +186,7 @@ public class ApplyMetrics {
                     long nFix = current.first().fixed().stream()
                             .filter(issue -> hashes.contains(issues.get(issue).hash())) // Fixed issues contained in this commit range
                             .count();
-                    DatasetGenerator.MetricValue nFixMetric = new DatasetGenerator.MetricValue(aClass, i, Metric.N_FIX, nFix);
+                    Main.MetricValue nFixMetric = new Main.MetricValue(aClass, i, Metric.N_FIX, nFix);
                     func.apply(nFixMetric);
                 }
                 // Set previous version as the current for the next iteration
