@@ -34,7 +34,7 @@ public class Analyses {
         this.lastRelease = lastRelease;
     }
     public List<Result> performAnalysis()  {
-        List<Result> Results = new ArrayList<>();
+        List<Result> results = new ArrayList<>();
         // No Feature Selection, No Balancing
         for (AnalysisVariables.Classifiers classifierType : AnalysisVariables.Classifiers.values()) {
             this.training = loadInstance(project, lastRelease, "training");
@@ -44,7 +44,7 @@ public class Analyses {
             Result Result;
             if (evaluation != null) {
                 Result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.NONE, AnalysisVariables.Sampling.NONE);
-                Results.add(Result);
+                results.add(Result);
             }
 
         }
@@ -71,12 +71,12 @@ public class Analyses {
                 Result Result;
                 if (evaluation != null) {
                     Result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.BEST_FIRST, sampling);
-                    Results.add(Result);
+                    results.add(Result);
                 }
 
             }
         }
-        return Results;
+        return results;
     }
     private Instances loadInstance(String project, int testingRelease, String instanceType) {
         try {
