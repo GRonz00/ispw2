@@ -31,7 +31,7 @@ public class Main {
         analyzeProjects();
     }
 
-    private static void processProjects() throws Exception {
+    private static void processProjects() throws IOException,GitException {
         for (int i = 0; i < ProjectList.names().length; i++) {
             String project = ProjectList.names()[i];
             String other = getOppositeProject(i);
@@ -146,7 +146,7 @@ public class Main {
         try {
             Files.write(path, text.getBytes());
         } catch (IOException e) {
-            System.out.print("Failed to write results for project: " + project);
+            logger.info("Failed to write results for project: " + project);
         }
     }
 
