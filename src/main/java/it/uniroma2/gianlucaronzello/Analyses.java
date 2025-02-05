@@ -18,6 +18,7 @@ import weka.filters.supervised.instance.Resample;
 import weka.filters.supervised.instance.SMOTE;
 import weka.filters.supervised.instance.SpreadSubsample;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,28 +38,34 @@ public class Analyses {
         List<Result> results = new ArrayList<>();
         // No Feature Selection, No Balancing
         for (AnalysisVariables.Classifiers classifierType : AnalysisVariables.Classifiers.values()) {
-            this.training = loadInstance(project, lastRelease, "training");
-            this.testing = loadInstance(project, lastRelease, "testing");
+            try {
+                this.training = loadInstance(project, lastRelease, "training");
+                this.testing = loadInstance(project, lastRelease, "testing");
+            }catch (Exception e) {
+                logger.info("errore in No Feature Selection, No Balancing ");
+            }
+
             Classifier classifier = selectClassifier(classifierType);
             Evaluation evaluation = analyze(classifier);
-            Result Result;
+            Result result;
             if (evaluation != null) {
-                Result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.NONE, AnalysisVariables.Sampling.NONE);
-                results.add(Result);
+                result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.NONE, AnalysisVariables.Sampling.NONE);
+                results.add(result);
             }
 
         }
         // Feature Selection, Balancing
         for (AnalysisVariables.Sampling sampling : AnalysisVariables.Sampling.values()) {
             for (AnalysisVariables.Classifiers classifierType : AnalysisVariables.Classifiers.values()) {
-                this.training = loadInstance(project, lastRelease, "training");
-                this.testing = loadInstance(project, lastRelease, "testing");
-                AttributeSelection filter = new AttributeSelection();
-                CfsSubsetEval evaluator = new CfsSubsetEval();
-                BestFirst search = new BestFirst();
-                filter.setEvaluator(evaluator);
-                filter.setSearch(search);
+
                 try {
+                    this.training = loadInstance(project, lastRelease, "training");
+                    this.testing = loadInstance(project, lastRelease, "testing");
+                    AttributeSelection filter = new AttributeSelection();
+                    CfsSubsetEval evaluator = new CfsSubsetEval();
+                    BestFirst search = new BestFirst();
+                    filter.setEvaluator(evaluator);
+                    filter.setSearch(search);
                     filter.setInputFormat(training);
                     training = Filter.useFilter(training, filter);
                     testing = Filter.useFilter(testing, filter);
@@ -68,17 +75,17 @@ public class Analyses {
                 applySampling(sampling);
                 Classifier classifier = selectClassifier(classifierType);
                 Evaluation evaluation = analyze(classifier);
-                Result Result;
+                Result result;
                 if (evaluation != null) {
-                    Result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.BEST_FIRST, sampling);
-                    results.add(Result);
+                    result = generateResult(evaluation, classifierType, AnalysisVariables.FeatureSelection.BEST_FIRST, sampling);
+                    results.add(result);
                 }
 
             }
         }
         return results;
     }
-    private Instances loadInstance(String project, int testingRelease, String instanceType) {
+    private Instances loadInstance(String project, int testingRelease, String instanceType) throws IOException {
         try {
             Path path = DatasetPaths.fromProject(project)
                     .resolve("arff")
@@ -89,7 +96,7 @@ public class Analyses {
             return instance;
         } catch (Exception e) {
             logger.info("errore nel caricamento arff");
-            return null;
+            throw new IOException(e);
         }
     }
     private Classifier selectClassifier(AnalysisVariables.Classifiers classifierType) {

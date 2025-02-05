@@ -69,7 +69,6 @@ public class CSVManagement {
     public void generationArff(){
         for (int i = 2; i < getNumberReleases(); i++) {
             Map<Integer, List<CsvEntry>> entries = loadCsv(project, "%d.csv".formatted(i));
-            //converterController.writeToArff(project, oracleEntries, entries, i);
             List<String> attributes = Arrays.stream(Metric.values()).map(m -> "@attribute %s numeric".formatted(m.name())).toList();
             
             List<String> testingData = oracleEntries.get(i).stream().map(this::entryFieldsToArff).toList();

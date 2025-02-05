@@ -79,7 +79,7 @@ public class Main {
         return coldStarts.get(coldStarts.size() / 2);
     }
 
-    private static GitClass setupGitRepository(String project, int index) throws Exception {
+    private static GitClass setupGitRepository(String project, int index) throws GitException {
         Path projectPath = Paths.get(project);
         if (projectPath.toFile().exists() && projectPath.resolve(".git").toFile().exists()) {
             return new GitClass(project);
@@ -89,7 +89,7 @@ public class Main {
         }
     }
 
-    private static JiraGitIntegration integrateJiraAndGit(Jira jira, GitClass git) throws Exception {
+    private static JiraGitIntegration integrateJiraAndGit(Jira jira, GitClass git) throws GitException {
         JiraGitIntegration integration = new JiraGitIntegration(git.getCommits());
         integration.findRevisions(jira.getVersions());
         for (Pair<JiraVersion, GitCommitEntry> version : integration.versions()) {
