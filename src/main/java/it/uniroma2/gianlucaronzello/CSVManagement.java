@@ -28,21 +28,14 @@ public class CSVManagement {
             List<CsvEntry> versionEntries = new ArrayList<>();
             for (int i = 1; i < lines.size(); i++) {
                 String[] values = lines.get(i).split(",");
-                // Read the version from the current line
                 int newVersion = Integer.parseInt(values[0]);
-                // There is another version
                 if (version != newVersion) {
-                    // Save entries for current version
                     entries.put(version, versionEntries);
-                    // Create new list for the entries of the new version
                     versionEntries = new ArrayList<>();
-                    // Update version value
                     version = newVersion;
                 }
-                // Read current entry
                 versionEntries.add(readEntry(lines.get(i)));
             }
-            // Add the last version to the map
             entries.put(version, versionEntries);
 
         } catch (IOException e) {

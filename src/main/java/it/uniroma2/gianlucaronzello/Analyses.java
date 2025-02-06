@@ -141,7 +141,7 @@ public class Analyses {
         if (percent < 50) percent = 100 - percent;
         switch (sampling) {
             case NONE -> {
-                // does not need to apply anything
+                // fa niente
             }
             case UNDER_SAMPLING -> {
                 try {

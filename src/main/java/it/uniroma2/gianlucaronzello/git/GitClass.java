@@ -39,9 +39,6 @@ public class GitClass {
     private final File folder;
     private final Repository repository;
     private final List<GitCommitEntry> commits;
-
-    
-    // Remote Repository
     public GitClass(String project, String url, String branch) throws GitException {
 
         this.folder = new File(project);
@@ -63,14 +60,11 @@ public class GitClass {
         this.commits = getCommits(repository);
 
     }
-
-    // Local Repository
     public GitClass(String folderPath) throws GitException {
         this.folder = new File(folderPath);
         this.repository = loadLocal(folder);
         this.commits = getCommits(repository);
     }
-
     public record GitDiffEntry(DiffEntry entry, int added, int deleted) {
         public int touched() {
             return this.added + this.deleted;
@@ -96,7 +90,6 @@ public class GitClass {
         List<GitCommitEntry> entries = new ArrayList<>();
         try (Git git = new Git(repository)) {
             for (Ref branch : git.branchList().call()) {
-                // all: used to get the commits from all branches (even the branches not synced with GitHub, but only in SVN ~ pre-2017)
                 for (RevCommit commit : git.log().all().add(repository.resolve(branch.getName())).call())
                     entries.add(commitFromRevCommit(commit));
             }
@@ -107,8 +100,7 @@ public class GitClass {
         } catch (IOException e) {
             throw new GitException("IO failure. Could not access refs", e);
         }
-
-        // Ascending order of commit date
+        //Ordine crescente per data
         Collections.reverse(entries);
         return entries;
     }
@@ -134,10 +126,8 @@ public class GitClass {
             walk.setRecursive(true);
             // Exclude non-java files
             walk.setFilter(PathSuffixFilter.create(".java"));
-
             // Iterate until there are files
             while (walk.next()) classes.add(walk.getPathString());
-
             version.setClassList(classes);
         } catch (IOException e) {
             throw new GitException("IO failure.", e);

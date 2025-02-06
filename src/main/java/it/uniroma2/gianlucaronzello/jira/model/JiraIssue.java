@@ -15,8 +15,6 @@ public class JiraIssue {
     private final String key;
     private final LocalDate resolution;
     private final LocalDate created;
-
-    // Corresponds to the `version` field; sorted list, but it can be empty
     private final List<LocalDate> affectedVersionsDates;
     private int ivIndex;
     private int ovIndex;
@@ -37,7 +35,7 @@ public class JiraIssue {
     }
 
     public int getFvMinusOv() {
-        // FV-OV is set to 1 if the opening and fix are the same version (Proportion Paper page 13.(d).(iii))
+        // FV-OV = 1 se stessa versoone
         return Math.max(fvIndex - ovIndex, 1);
     }
 

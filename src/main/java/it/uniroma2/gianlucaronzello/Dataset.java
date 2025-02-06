@@ -20,26 +20,17 @@ import java.util.stream.IntStream;
 
 public class Dataset {
     private static final Logger logger = Logger.getLogger("ApplyMetrics");
-    // Sorted list of Jira releases
     private final List<Pair<JiraVersion, GitCommitEntry>> versions;
     private final Map<JiraIssue, GitCommitEntry> issues;
-
-    // Provides functionality to explore the git repository to calculate metrics
     private final GitClass git;
-
-    // Maps class name to its metrics. i-th element in the list is the entry for the i-th version
     private final Map<String, List<DatasetEntry>> entries;
     public Dataset(JiraGitIntegration integration, GitClass git) {
         this.git = git;
         this.entries = new HashMap<>();
         this.issues = integration.issues();
         this.versions = integration.versions();
-
-
-        // Initialize `revisions`
         for (Pair<JiraVersion, GitCommitEntry> version : this.versions) {
             GitCommitEntry revision = version.second();
-            // Initialize `entries` map
             for (String aClass : revision.classList()) {
                 List<DatasetEntry> datasetEntries = new ArrayList<>();
                 for (int i = 0; i < this.versions.size(); i++)
@@ -65,13 +56,11 @@ public class Dataset {
     public  void applyLOCMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
                                       Function<Main.MetricValue, Void> func) {
         try {
-            // For every revision
+            // ogni revisione
             for (int i = 0; i < versions.size(); i++) {
                 GitCommitEntry revision = versions.get(i).second();
-
-                // For every class
                 for (String aClass : revision.classList()) {
-                    // Calculate the LOC of a file calculating the number of lines
+                    // calcoli il numeroo di linee del file
                     String contents = git.getContentsOfClass(revision, aClass);
                     int loc = contents.split("\n").length;
                     Main.MetricValue value = new Main.MetricValue(aClass, i, Metric.LOC, loc);
@@ -86,15 +75,12 @@ public class Dataset {
     public  void applyDifferenceMetric(GitClass git, List<Pair<JiraVersion, GitCommitEntry>> versions,
                                              Function<Main.MetricValue, Void> func)  {
         try {
-            // For every pair of consecutive releases
             GitCommitEntry previous = git.getFirstCommit();
-            // For every consecutive pair of classes
+            // vedi release consecutive
             for (int i = 0; i < versions.size(); i++) {
                 GitCommitEntry current = versions.get(i).second();
-                // Get the differences between commits
+                //differenze tra commit
                 Map<String, GitClass.GitDiffEntry> diffs = git.getDifferences(previous, current);
-
-                // For every class in the current release
                 for (String aClass : current.classList()) {
                     // Get the diff of this class
                     GitClass.GitDiffEntry diff = diffs.get(aClass);
